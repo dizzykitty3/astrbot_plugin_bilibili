@@ -401,15 +401,18 @@ class Main(Star):
                 image_urls=[info["pic"]],
             )
 
-            img_path = await self.renderer.render_dynamic(payload)
-            if img_path:
-                await event.send(MessageChain().file_image(img_path))
+            text = "\n".join(filter(None, payload.text.split("<br>")))
+            if self.rai:
+                img_path = await self.renderer.render_dynamic(payload)
+                if img_path:
+                    await event.send(MessageChain().file_image(img_path))
+                else:
+                    msg = "渲染图片失败了 (´;ω;`)"
+                    await event.send(
+                        MessageChain().message(msg).message(text).url_image(info["pic"])
+                    )
             else:
-                msg = "渲染图片失败了 (´;ω;`)"
-                text = "\n".join(filter(None, payload.text.split("<br>")))
-                await event.send(
-                    MessageChain().message(msg).message(text).url_image(info["pic"])
-                )
+                await event.send(MessageChain().message(text).url_image(info["pic"]))
 
     @command("bili_sub", alias={"订阅动态"})
     async def dynamic_sub(self, event: AstrMessageEvent, uid: str, input: GreedyStr):
